@@ -1,92 +1,55 @@
-import java.io.File;
-import java.io.IOException;
-import java.util.Scanner;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
+    public static String[] readFileToArray(String filePath) {
+        List<String> lines = new ArrayList<>();
 
-    public static ArrayList<ArrayList<Integer>> report = new ArrayList<>();
-
-    public static void readFile() {
-        try {
-            // Reading the file
-            File file = new File("input/input_day2.txt");
-            Scanner scanner = new Scanner(file);
-
-            while (scanner.hasNextLine()) {
-                String line = scanner.nextLine().trim();
-                if (!line.isEmpty()) {
-                    String[] parts = line.split(" ");
-
-                    // Create a new row for the current line
-                    ArrayList<Integer> row = new ArrayList<>();
-                    for (String part : parts) {
-                        row.add(Integer.parseInt(part));  // Parse and add each number
-                    }
-                    report.add(row);  // Add the row to the report
-                }
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                lines.add(line); // Add each line to the list
             }
-            scanner.close();
-
         } catch (IOException e) {
-            System.out.println("An error occurred while reading the file.");
             e.printStackTrace();
         }
+
+        // Convert the list to a String array
+        return lines.toArray(new String[0]);
     }
 
-    public static boolean condOne(ArrayList<Integer> row) {
-        int e1 = row.get(0);
-        int e2 = row.get(1);
-        if(e1 < e2){
-            for(int i=2; i<row.size(); i++){
-                if(row.get(i-1) > row.get(i)){
-                    return false;
-                }
-            }
-        } else if (e1 > e2) {
-            for(int i=2; i<row.size(); i++){
-                if(row.get(i-1) < row.get(i)){
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
-    public static boolean checkAL(ArrayList<Integer> row) {
-        for(int i=0; i < row.size() - 1; i++){
-            if( Math.abs(row.get(i)-row.get(i+1)) < 1 || Math.abs(row.get(i)-row.get(i+1)) > 3 ){
-                return false;
-            }
-        }
-        return true;
-    }
+    public static int calculateSum(String[] lines, String regex) {
+        Pattern pattern = Pattern.compile(regex);
+        int sum = 0;
 
-    public static boolean pbDp(ArrayList<Integer> row){
-        for(int i=0; i < row.size(); i++){
-            int e = row.get(i);
-            row.remove(i);
-            if(condOne(row) && checkAL(row)){
-                return true;
-            } else{
-                row.add(i, e);
-            }
-        }
-        return false;
-    }
+        for (String line : lines) {
+            Matcher matcher = pattern.matcher(line);
+            while (matcher.find()) {
+                int x = Integer.parseInt(matcher.group(1));
+                int y = Integer.parseInt(matcher.group(2));
 
-    public static int safeCount(ArrayList<ArrayList<Integer>> r){
-        int count=0;
-        for (ArrayList<Integer> integers : r) {
-            if (condOne(integers) && checkAL(integers) || pbDp(integers)) {
-                count++;
+                int product = x * y;
+                sum += product;
+
+                System.out.println("Match: " + matcher.group() + " => Product: " + product);
             }
         }
-        return count;
+
+        return sum;
     }
 
     public static void main(String[] args) {
-        readFile();
-        System.out.println(safeCount(report));
+        String filePath = "input/input_day3.txt";
+        String[] fileContent = readFileToArray(filePath);
+
+        String regex = "mul\\((\\d{1,3}),(\\d{1,3})\\)";
+
+        int totalSum = calculateSum(fileContent, regex);
+
+        System.out.println("Total Sum: " + totalSum);
     }
 }
